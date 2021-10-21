@@ -7,4 +7,6 @@ second <- function(x){
   x + rnorm(length(x))
 }
 
-mb <- matrix(nrow = 3, ncol = 5)
+mb <- matrix(10:99, nrow = 9, ncol = 10)
+mb
+
