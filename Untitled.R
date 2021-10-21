@@ -6,3 +6,5 @@ myfunction <- function() {
 second <- function(x){
   x + rnorm(length(x))
 }
+
+mb <- matrix(nrow = 3, ncol = 5)
