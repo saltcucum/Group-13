@@ -132,7 +132,21 @@ nonnative_means<- nonnative_anxiety_level %>%
 T-test visualisation
 
 ```{r}
-
+#this is the t test 
+ttest<-t.test(native_means$anxiety_mean,nonnative_means$anxiety_mean) 
+#results of ttest 
+# data:  native_means$anxiety_mean and nonnative_means$anxiety_mean 
+# t = 2.3233, df = 7.9831, p-value = 0.04873 
+# alternative hypothesis: true difference in means is not equal to 0 
+# 95 percent confidence interval: 
+#   0.003395658 0.955271009 
+# sample estimates: 
+#   mean of x mean of y 
+# 4.508333  4.029000 
+#p-value = 0.04873 and is less than 0.05 so we Reject the null and there is a significant difference between the two groups 
+boxplot(native_means$anxiety_mean,nonnative_means$anxiety_mean) 
+ 
+ 
 ```
 
 Correlation visualisation
