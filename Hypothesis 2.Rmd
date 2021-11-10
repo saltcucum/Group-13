@@ -87,8 +87,7 @@ anxiety_level <- select(combine_data, user_id, native, anxiety_1, anxiety_2, anx
 #### 5. If necessary, use filter to retain only the observations you need, for example, you might need to delete participants above a certain age, or only use mature students etc.
 
 ```{r}
-native_anxiety_level <- filter(anxiety_level, native == 1)
-nonnative_anxiety_level <- filter(anxiety_level, native == 2) 
+
 ```
 
 #### 6. Use `summary` or `str` to check what type of variable each variable is. Recode any necessary variables as factors and, if you would like to, change numeric codes (e.g., 1 for native speaker) into words to make it easier to read the output. 
@@ -96,6 +95,12 @@ nonnative_anxiety_level <- filter(anxiety_level, native == 2)
 ```{r}
 str(anxiety_level)
 summary(anxiety_level)  
+
+anxiety_level <- anxiety_level %>%
+  mutate(native = dplyr::recode(native, "1" = "Yes", "2" = "No"), native = as.factor(native))
+
+str(anxiety_level)
+summary(anxiety_level)   
 ```
 
 #### 7. Calculate the mean score for each participant for each sub-scale. There are a few ways you can do this but helpfully the Experimentum documentation provides example code to make this easier, you just need to adapt it for the variables you need. You may also want to change the `na.rm = TRUE` for the calculation of means depending on whether you want to only include participants who completed all questions.
@@ -103,27 +108,36 @@ summary(anxiety_level)
 At the top of the code chunk below, change `eval = FALSE` to `eval = TRUE` once you have amended your code. The reason it is currently set to FALSE is to allow the file to knit.
 
 
+#Summary of count, mean and SD of the selected samples
 ```{r eval = TRUE}
-dat_means <- anxiety_level %>% 
-  pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response") %>% 
-  group_by(Question)%>% 
-  summarise(anxiety_mean = mean(Response, na.rm = TRUE)) %>%
+dat_summary <- anxiety_level %>% 
+  pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response") %>%
+  group_by(native, Question) %>% 
+  summarise(count= n(),
+            anxiety_mean = mean(Response, na.rm = TRUE), 
+            anxiety_sd = sd(Response,na.rm = TRUE) ) %>%
   ungroup()
 ```
-
+#Summary of count, mean and SD of the selected native and non-native samples
 ```{r}
-native_means<- native_anxiety_level %>%
+
+native_anxiety_level <- filter(anxiety_level, native == 1)
+nonnative_anxiety_level <- filter(anxiety_level, native == 2) 
+
+native_summary<- native_anxiety_level %>%
   pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response")%>%
   group_by(Question)%>% 
-  summarise(anxiety_mean = mean(Response, na.rm = TRUE)) %>%
+  summarise(count= n(),
+            anxiety_mean = mean(Response, na.rm = TRUE),
+            anxiety_sd = sd(Response,na.rm = TRUE)) %>%
   ungroup()
-```
 
-```{r}
-nonnative_means<- nonnative_anxiety_level %>%
+nonnative_summary<- nonnative_anxiety_level %>%
   pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response")%>%
   group_by(Question)%>% 
-  summarise(anxiety_mean = mean(Response, na.rm = TRUE)) %>%
+  summarise(count= n(),
+            anxiety_mean = mean(Response, na.rm = TRUE),
+            anxiety_sd = sd(Response,na.rm = TRUE)) %>%
   ungroup()
 ```
 
