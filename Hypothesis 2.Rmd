@@ -176,7 +176,11 @@ Correlation assumptions
 T-test analysis
 
 ```{r}
-
+t_result <- t.test(anxiety_mean~native,
+       paired = FALSE,
+       data = dat_summary,
+       alternative = "less") %>%
+  tidy ()
 ```
 
 Correlation analysis
