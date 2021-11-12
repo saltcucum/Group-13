@@ -87,7 +87,12 @@ anxiety_level <- select(combine_data, user_id, native, anxiety_1, anxiety_2, anx
 #### 5. If necessary, use filter to retain only the observations you need, for example, you might need to delete participants above a certain age, or only use mature students etc.
 
 ```{r}
-
+anxiety_level <- anxiety_level %>%
+  filter(!is.na (anxiety_1)) %>%
+  filter(!is.na (anxiety_2)) %>%
+  filter(!is.na (anxiety_3)) %>%
+  filter(!is.na (anxiety_4)) %>%
+  filter(!is.na (anxiety_5))
 ```
 
 #### 6. Use `summary` or `str` to check what type of variable each variable is. Recode any necessary variables as factors and, if you would like to, change numeric codes (e.g., 1 for native speaker) into words to make it easier to read the output. 
@@ -110,42 +115,38 @@ At the top of the code chunk below, change `eval = FALSE` to `eval = TRUE` once 
 
 #Summary of count, mean and SD of the selected samples
 ```{r eval = TRUE}
-dat_summary <- anxiety_level %>% 
-  pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response") %>%
+dat_summary <- anxiety_level %>%
   group_by(native, Question) %>% 
   summarise(count= n(),
             anxiety_mean = mean(Response, na.rm = TRUE), 
             anxiety_sd = sd(Response,na.rm = TRUE) ) %>%
   ungroup()
 ```
-#Summary of count, mean and SD of the selected native and non-native samples
-```{r}
 
-native_anxiety_level <- filter(anxiety_level, native == 1)
-nonnative_anxiety_level <- filter(anxiety_level, native == 2) 
-
-native_summary<- native_anxiety_level %>%
-  pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response")%>%
-  group_by(Question)%>% 
-  summarise(count= n(),
-            anxiety_mean = mean(Response, na.rm = TRUE),
-            anxiety_sd = sd(Response,na.rm = TRUE)) %>%
-  ungroup()
-
-nonnative_summary<- nonnative_anxiety_level %>%
-  pivot_longer(anxiety_1:anxiety_5, "Question", values_to = "Response")%>%
-  group_by(Question)%>% 
-  summarise(count= n(),
-            anxiety_mean = mean(Response, na.rm = TRUE),
-            anxiety_sd = sd(Response,na.rm = TRUE)) %>%
-  ungroup()
-```
 
 #### 8. Now you have the dataset in the format that you need for analysis (you could actually combine all of the above steps together in one mega pipe-line of code, but only do that if you're feeling confident). Next, you should visualise the data for each analysis.
 
 T-test visualisation
 
+
 ```{r}
+#Violin Plot and Box Plot Showing Distributions
+anxiety_level %>%
+  ggplot(aes(x = native, y = Response, fill = native)) +
+  geom_violin(trim = FALSE, show.legend = FALSE, alpha = .4) +
+  geom_boxplot (width = .2, show.legend = FALSE) +
+  labs (x = "Category", y = "Score") +
+  scale_x_discrete(labels = c("Native", "Non-native")) + 
+  theme_minimal() 
+
+#Bar Chart Counting Two Groups
+anxiety_level %>%
+  ggplot(aes(x = native, fill = native)) +
+  geom_bar (show.legend = FALSE) +
+  labs (x = "Category", y = "Count") +
+  scale_x_discrete(labels = c("Native", "Non-native")) + 
+  theme_minimal() 
+```
 ```{r}
 #this is the t test
 ttest<-t.test(native_summary$anxiety_mean,nonnative_summary$anxiety_mean)
@@ -181,10 +182,30 @@ Correlation visualisation
 #### 9. Now you should check that the data meets the assumptions of the tests you want to conduct.
 
 T-test assumptions
+#Normality Test of Native Group by QQ Plot Visualiztion
+```{r}
+native_residuals <- anxiety_level %>%
+  filter(native == "Yes") %>%
+  mutate (residual = Response - mean(Response, na.rm = TRUE)) %>%
+  select(residual)
+
+qqPlot(native_residuals$residual)
+```
+
+#Normality Test of Non-native Group by QQ Plot Visualiztion
+```{r}
+non_native_residuals <- anxiety_level %>% 
+  filter(native == "No") %>%
+  mutate (residual = Response - mean(Response, na.rm = TRUE)) %>%
+  select(residual)
+
+qqPlot (non_native_residuals$residual) 
+```
+
 
 ```{r}
 #normality -both data sets are normallity distributed - shaprio wilk tests above.
-#equal variances - vairances are similar as below
+#equal variances - vairances are similar as below （not require for Welch's T test)
 #simple random sample has been collected - Yes, this has in best of practice of psych
 
 summary(native_summary$anxiety_mean)
@@ -211,13 +232,7 @@ t_result <- t.test(anxiety_mean~native,
        alternative = "less") %>%
   tidy ()
 ```
-```{r}
-t_result <- t.test(anxiety_mean~native,
-                   paired = FALSE,
-                   data = dat_summary,
-                   alternative = "less") %>%
-  tidy ()
-```
+
 #attempt 2
 ttest<-t.test(native_summary$anxiety_mean,nonnative_summary$anxiety_mean)
 ttest
