@@ -102,10 +102,11 @@ str(anxiety_level)
 summary(anxiety_level)  
 
 anxiety_level <- anxiety_level %>%
-  mutate(native = dplyr::recode(native, "1" = "Yes", "2" = "No"), native = as.factor(native))
+  mutate(native = dplyr::recode(native, "1" = "Yes", "2" = "No"), native = as.factor(native)) %>%
+  pivot_longer(anxiety_1:anxiety_5, "Question",values_to = "Response")
 
 str(anxiety_level)
-summary(anxiety_level)   
+summary(anxiety_level)    
 ```
 
 #### 7. Calculate the mean score for each participant for each sub-scale. There are a few ways you can do this but helpfully the Experimentum documentation provides example code to make this easier, you just need to adapt it for the variables you need. You may also want to change the `na.rm = TRUE` for the calculation of means depending on whether you want to only include participants who completed all questions.
