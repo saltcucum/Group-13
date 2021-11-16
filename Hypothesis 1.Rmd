@@ -1,0 +1,220 @@
+---
+title: "Pre-registration for Group [insert group number]"
+author: "1234567, 2345678, 3456789, 4567890, 09887653, 9876543" #replace with GUIDS 
+output: word_document
+---
+
+#	1. What are the main hypotheses being tested in this study? Provide a concise rationale.
+
+
+
+# 2. Describe the key variables specifying how they will be measured, how many levels they have and how participants will be assigned (if relevant).
+
+
+
+# 3. Describe your precise rule(s) for excluding observations and/or participants.
+
+
+
+# 4. Describe exactly which inferential analyses you will conduct to examine the main hypotheses, including details of any assumption tests.
+
+
+
+# 5. How many observations will be collected or what will determine sample size/statistical power? 
+
+
+
+# References
+
+
+# Analysis code
+
+This template assumes that you will be running one t-test and a correlation, if you have decided to do something more complex then this template may not fit your needs. Some of the code has been completed for you to clean up the raw questionnaire output from Experimentum. Remember to knit the file after each step, it will make it easy to spot if you have made an error.
+
+Finally, remember that the pilot data is a small sample compared to the larger dataset that you will work with for the full quantitative report. There may be missing data or types of participants in the full data set that aren't present in this sample.
+
+**You can delete the above instructions before you knit and submit your final pre-reg**
+
+#### 1. Load in packages and data
+
+```{r}
+library(tidyverse)
+library(pwr)
+
+# you will need to add extra packages in here to do the rest of your analyses
+
+demo <- read_csv("demographics_2021_pilot.csv")
+mslq <- read_csv("MSLQ_2021_pilot.csv")
+```
+
+#### 2. Clean up the data
+
+Run the below code - don't change anything. This code will clean up the Experimentum data a little bit to help you on your way. 
+
+```{r}
+demo_final <- demo %>% 
+  group_by(user_id, q_id) %>% 
+  filter(session_id == min(session_id), endtime == min(endtime)) %>% 
+  filter(row_number() == 1) %>% 
+  ungroup() %>% 
+  filter(user_status %in% c("guest", "registered")) %>%
+  select(user_id, user_sex, user_age, q_name, dv) %>%
+  pivot_wider(names_from = q_name, values_from = dv)
+
+mslq_final <- mslq %>% 
+  group_by(user_id, q_id) %>% 
+  filter(session_id == min(session_id), endtime == min(endtime)) %>% 
+  filter(row_number() == 1) %>% 
+  ungroup() %>% 
+  filter(user_status %in% c("guest", "registered")) %>%
+  select(user_id, user_sex, user_age, q_name, dv) %>%
+  arrange(q_name) %>%
+  pivot_wider(names_from = q_name, values_from = dv)
+
+```
+
+#### 3. Join together the data files by their common columns
+
+```{r}
+combine_data <- inner_join(demo_final, mslq_final, "user_id")
+
+
+
+```
+
+#### 4. Use select to retain only the variables you need for your chosen research design (including the user ID).
+
+```{r}
+anxiety_level <- select(combine_data, user_id, anxiety_1, anxiety_2, anxiety_3, anxiety_4, anxiety_5)
+peer_level <- select(combine_data, user_id, peer_1,peer_2,peer_3)
+
+```
+
+#### 5. If necessary, use filter to retain only the observations you need, for example, you might need to delete participants above a certain age, or only use mature students etc.
+
+```{r}
+combinifilter <- combine_data%>% filter(!is.na(anxiety_1))%>% #to remove all variable inconsistencies
+  filter(!is.na(anxiety_2))%>%
+  filter(!is.na(anxiety_3))%>%
+  filter(!is.na(anxiety_4))%>%
+  filter(!is.na(anxiety_5))%>%
+  filter(!is.na(peer_1))%>%
+  filter(!is.na(peer_2))%>%
+  filter(!is.na(peer_3))%>%select(user_id, anxiety_1:anxiety_5, peer_1:peer_3)
+
+anxiety_level <- anxiety_level %>% filter(!is.na(anxiety_1))%>%
+ filter(!is.na(anxiety_2))%>%
+ filter(!is.na(anxiety_3))%>%
+ filter(!is.na(anxiety_4))%>%
+ filter(!is.na(anxiety_5))
+
+peer_level <- peer_level%>%filter(!is.na(peer_1))%>%
+ filter(!is.na(peer_2))%>%
+ filter(!is.na(peer_3))
+
+
+                                 
+
+```
+
+#### 6. Use `summary` or `str` to check what type of variable each variable is. Recode any necessary variables as factors and, if you would like to, change numeric codes (e.g., 1 for native speaker) into words to make it easier to read the output. 
+
+```{r}
+str(peer_level)
+summary(peer_level)
+
+
+str(anxiety_level)
+summary(anxiety_level)
+
+```
+
+#### 7. Calculate the mean score for each participant for each sub-scale. There are a few ways you can do this but helpfully the Experimentum documentation provides example code to make this easier, you just need to adapt it for the variables you need. You may also want to change the `na.rm = TRUE` for the calculation of means depending on whether you want to only include participants who completed all questions.
+
+At the top of the code chunk below, change `eval = FALSE` to `eval = TRUE` once you have amended your code. The reason it is currently set to FALSE is to allow the file to knit.
+
+
+```{r eval = FALSE}
+var_sum <- combinifilter %>% 
+  gather(var, val, anxiety_1:anxiety_5) %>%  
+  group_by_at(vars(-val, -var)) %>% 
+  summarise(
+    anxiety_count = n(),
+    anxiety_mean = mean(val, na.rm = TRUE),
+    anxiety_sd = sd(val, na.rm = TRUE)) %>% 
+  ungroup() %>%
+  gather(var, val, peer_1:peer_3,) %>% 
+  group_by_at(vars(-val, -var)) %>% 
+  summarise(
+    peer_count = n(),
+    peer_mean = mean(val, na.rm = TRUE),
+    peer_sd = sd(val, na.rm = TRUE)) %>%  
+  ungroup() 
+
+
+```
+
+#### 8. Now you have the dataset in the format that you need for analysis (you could actually combine all of the above steps together in one mega pipe-line of code, but only do that if you're feeling confident). Next, you should visualise the data for each analysis.
+
+T-test visualisation
+
+```{r}
+
+```
+
+Correlation visualisation
+
+```{r}
+
+
+ggplot(data = var_sum, aes(x = anxiety_mean)) + 
+  geom_histogram() + theme_minimal() 
+  
+ggplot(data = var_sum, aes(x = peer_mean)) + 
+  geom_histogram() + theme_minimal() 
+  
+
+qqplot(y = var_sum$anxiety_mean, 
+       x = var_sum$peer_mean, 
+       xlab = "Peer Learning", ylab = "Anxiety") + 
+  theme_minimal() 
+
+ggplot(data = var_sum, aes(y = anxiety_mean, x = peer_mean,)) + 
+  geom_point() + 
+  geom_smooth(method = lm) + ylab("Anxiety") + xlab("Peer Learning") + theme_minimal() 
+  
+```
+
+
+#### 9. Now you should check that the data meets the assumptions of the tests you want to conduct.
+
+T-test assumptions
+
+```{r}
+
+```
+
+Correlation assumptions
+
+```{r}
+
+```
+
+
+#### 10. Finally, you can conduct your statistical analyses. Don't forget to calculate effect sizes for the t-tests!
+
+T-test analysis
+
+```{r}
+
+```
+
+Correlation analysis
+
+
+```{r}
+
+```
+
+
+
