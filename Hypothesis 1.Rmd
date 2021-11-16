@@ -123,9 +123,18 @@ peer_level <- peer_level%>%filter(!is.na(peer_1))%>%
 
 ```{r}
 str(peer_level)
-summary(peer_level)
+summary(peer_level)  
+peer_level <- peer_level %>%
+  pivot_longer(peer_1:peer_3, "Question", values_to = "Response")
+str(peer_level)
+summary(peer_level)  
+
 str(anxiety_level)
-summary(anxiety_level)
+summary(anxiety_level)  
+anxiety_level <- anxiety_level %>%
+  pivot_longer(anxiety_1:anxiety_5, "Question",values_to = "Response")
+str(anxiety_level)
+summary(anxiety_level)  
 
 
 ```
@@ -166,7 +175,54 @@ T-test visualisation
 Correlation visualisation
 
 ```{r}
+#Barplots
+var_sum <- var_sum %>%
+  mutate(anxiety_mean = as.factor(anxiety_mean),
+         pear_mean = as.factor(peer_mean))
+ggplot(var_sum, aes(x = anxiety_mean, fill = anxiety_mean)) +
+  geom_bar(show.legend = FALSE) +
+  scale_x_discrete(name = "Mean Anxiety Score") +
+  scale_y_continuous(name = "Number of participants")
 
+
+ggplot(var_sum, aes(x = peer_mean, fill = peer_mean)) +
+  geom_bar(show.legend = FALSE) +
+  scale_x_discrete(name = "Mean Peer Score") +
+  scale_y_continuous(name = "Number of participants")
+
+#The Violin-boxplot
+ggplot(var_sum, aes(x = anxiety_mean, 
+                        y = peer_mean, 
+                        fill = anxiety_mean)) +
+  geom_violin(trim = FALSE, 
+              show.legend = FALSE, 
+              alpha = .4) +
+  geom_boxplot(width = .2, 
+               show.legend = FALSE, 
+               alpha = .7)+
+  scale_x_discrete(name = "Mean Anxiety Score") +
+  scale_y_continuous(name = "Mean Peer Score")+
+  theme_minimal() +
+  scale_fill_viridis_d()
+
+
+
+  
+```
+
+
+#### 9. Now you should check that the data meets the assumptions of the tests you want to conduct.
+
+T-test assumptions
+
+```{r}
+
+
+```
+
+Correlation assumptions
+
+```{r}
 #Histograms for Normality
 ggplot(data = var_sum, aes(x = anxiety_mean)) + 
   geom_histogram() + theme_minimal() +
@@ -196,25 +252,6 @@ ggplot(data = var_sum, aes(y = anxiety_mean, x = peer_mean,)) +
   xlab("Peer Learning") + 
   theme_classic() 
 
-
-
-  
-```
-
-
-#### 9. Now you should check that the data meets the assumptions of the tests you want to conduct.
-
-T-test assumptions
-
-```{r}
-
-
-```
-
-Correlation assumptions
-
-```{r}
-
 ```
 
 
@@ -230,7 +267,12 @@ Correlation analysis
 
 
 ```{r}
-cor(var_sum$anxiety_mean, var_sum$peer_mean, method = "pearson")
+correlation(data = var_sum, 
+            select = "anxiety_mean", 
+            select2 = "peer_mean",  
+            method = "pearson", 
+            alternative = "two.sided")
+```
 
 ```
 
