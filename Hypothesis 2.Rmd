@@ -38,6 +38,11 @@ Finally, remember that the pilot data is a small sample compared to the larger d
 #### 1. Load in packages and data
 
 ```{r}
+library(Hmisc)
+library(broom)
+library(car)
+library(effectsize)
+library(report)
 library(tidyverse)
 
 # you will need to add extra packages in here to do the rest of your analyses
