@@ -202,8 +202,16 @@ T-test analysis
 t_result <- t.test(anxiety_mean~native,
        paired = FALSE,
        data = dat_summary,
-       alternative = "less") %>%
+       alternative = "greater") %>%
   tidy ()
+  
+  #power analysis
+  pwr.t.test(d = .2,
+           power = .8,
+           sig.level = .05,
+           alternative = "greater",
+           type = "two.sample")
+
 ```
 
 
