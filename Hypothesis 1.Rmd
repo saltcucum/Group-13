@@ -40,6 +40,7 @@ Finally, remember that the pilot data is a small sample compared to the larger d
 ```{r}
 library(tidyverse)
 library(pwr)
+library(GGally)
 
 # you will need to add extra packages in here to do the rest of your analyses
 
@@ -86,6 +87,7 @@ combine_data <- inner_join(demo_final, mslq_final, "user_id")
 
 ```{r}
 anxiety_level <- select(combine_data, user_id, anxiety_1, anxiety_2, anxiety_3, anxiety_4, anxiety_5)
+
 peer_level <- select(combine_data, user_id, peer_1,peer_2,peer_3)
 
 ```
@@ -122,10 +124,9 @@ peer_level <- peer_level%>%filter(!is.na(peer_1))%>%
 ```{r}
 str(peer_level)
 summary(peer_level)
-
-
 str(anxiety_level)
 summary(anxiety_level)
+
 
 ```
 
@@ -166,22 +167,37 @@ Correlation visualisation
 
 ```{r}
 
-
+#Histograms for Normality
 ggplot(data = var_sum, aes(x = anxiety_mean)) + 
-  geom_histogram() + theme_minimal() 
+  geom_histogram() + theme_minimal() +
+  stat_bin(binwidth = 0.2) + 
+  xlab("Test Anxiety") + 
+  theme_classic() 
   
 ggplot(data = var_sum, aes(x = peer_mean)) + 
-  geom_histogram() + theme_minimal() 
+  geom_histogram() + 
+  theme_minimal() +
+  stat_bin(binwidth = 0.2) + 
+  xlab("Peer Learning") + 
+  theme_classic() 
   
 
+#Q-Q Plots for Normality
 qqplot(y = var_sum$anxiety_mean, 
        x = var_sum$peer_mean, 
-       xlab = "Peer Learning", ylab = "Anxiety") + 
-  theme_minimal() 
-
+       xlab = "Peer Learning", 
+       ylab = "Test Anxiety") + 
+       theme_classic() 
+#linearity and homoscedasticity
 ggplot(data = var_sum, aes(y = anxiety_mean, x = peer_mean,)) + 
   geom_point() + 
-  geom_smooth(method = lm) + ylab("Anxiety") + xlab("Peer Learning") + theme_minimal() 
+  geom_smooth(method = lm) + 
+  ylab("Test Anxiety") + 
+  xlab("Peer Learning") + 
+  theme_classic() 
+
+
+
   
 ```
 
@@ -191,6 +207,7 @@ ggplot(data = var_sum, aes(y = anxiety_mean, x = peer_mean,)) +
 T-test assumptions
 
 ```{r}
+
 
 ```
 
@@ -213,6 +230,7 @@ Correlation analysis
 
 
 ```{r}
+cor(var_sum$anxiety_mean, var_sum$peer_mean, method = "pearson")
 
 ```
 
